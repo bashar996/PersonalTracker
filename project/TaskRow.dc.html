@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border-radius:11px;cursor:pointer;transition:background .12s;" style-hover="background:#f2efe8;" onClick="{{ task.onOpen }}">
+  <button style="{{ task.statusStyle }}" onClick="{{ task.onToggle }}">{{ task.statusMark }}</button>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="{{ task.titleStyle }}min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">{{ task.title }}</span>
+      <div style="display:flex;align-items:center;gap:11px;flex:none;">
+        <sc-if value="{{ task.showSub }}" hint-placeholder-val="{{ false }}">
+          <span style="display:inline-flex;align-items:center;gap:4px;font:500 11.5px 'Instrument Sans';color:#a8a396;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b3ada0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l2 2 3-3"/><path d="M4 15l2 2 3-3"/><line x1="13" y1="6" x2="20" y2="6"/><line x1="13" y1="16" x2="20" y2="16"/></svg>{{ task.subLabel }}</span>
+        </sc-if>
+        <sc-if value="{{ task.showMedia }}" hint-placeholder-val="{{ false }}">
+          <span style="display:inline-flex;align-items:center;gap:4px;font:500 11.5px 'Instrument Sans';color:#a8a396;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b3ada0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>{{ task.mediaLabel }}</span>
+        </sc-if>
+        <sc-if value="{{ task.showPrio }}" hint-placeholder-val="{{ false }}"><span style="{{ task.priorityDotStyle }}"></span></sc-if>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px 13px;">
+      <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'Instrument Sans';color:#8a8578;">
+        <span style="{{ task.projectDotStyle }}"></span>{{ task.projectName }}</span>
+      <sc-if value="{{ task.showDue }}" hint-placeholder-val="{{ true }}"><span style="{{ task.dueStyle }}">{{ task.dueLabel }}</span></sc-if>
+      <sc-if value="{{ task.isMeeting }}" hint-placeholder-val="{{ false }}"><span style="font:500 11px 'Instrument Sans';color:#6f7c99;background:#eef1f6;padding:2px 8px;border-radius:5px;">Meeting</span></sc-if>
+      <sc-if value="{{ task.hasTags }}" hint-placeholder-val="{{ false }}">
+        <span style="display:inline-flex;flex-wrap:wrap;gap:5px;">
+          <sc-for list="{{ task.tags }}" as="tag" hint-placeholder-count="0"><span style="{{ tag.style }}">{{ tag.text }}</span></sc-for>
+        </span>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:80},&quot;task&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;object&quot;,&quot;default&quot;:{&quot;title&quot;:&quot;New dashboard wireframes&quot;,&quot;statusStyle&quot;:&quot;flex:none;width:20px;height:20px;border-radius:50%;border:2px solid #4a7862;background:transparent;box-sizing:border-box;display:flex;align-items:center;justify-content:center;color:#4a7862;font:700 9px sans-serif;&quot;,&quot;statusMark&quot;:&quot;●&quot;,&quot;titleStyle&quot;:&quot;font:500 14.5px/1.3 'Instrument Sans',system-ui,sans-serif;color:#26241f;&quot;,&quot;projectName&quot;:&quot;OneHub Revamp&quot;,&quot;projectDotStyle&quot;:&quot;flex:none;width:8px;height:8px;border-radius:50%;background:#7c9885;&quot;,&quot;showDue&quot;:true,&quot;dueLabel&quot;:&quot;Today · 4 PM&quot;,&quot;dueStyle&quot;:&quot;font:600 12px 'Instrument Sans';color:#3d6552;&quot;,&quot;isMeeting&quot;:false,&quot;hasTags&quot;:true,&quot;tags&quot;:[{&quot;text&quot;:&quot;#design&quot;,&quot;style&quot;:&quot;font:500 11px 'Instrument Sans';color:#9a9488;background:#efece6;padding:2px 7px;border-radius:5px;&quot;}],&quot;showSub&quot;:true,&quot;subLabel&quot;:&quot;1/2&quot;,&quot;showMedia&quot;:true,&quot;mediaLabel&quot;:&quot;2&quot;,&quot;showPrio&quot;:true,&quot;priorityDotStyle&quot;:&quot;flex:none;width:8px;height:8px;border-radius:50%;background:#c0564a;&quot;}}}"></script>
+</body>
+</html>
