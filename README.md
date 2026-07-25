@@ -1,25 +1,48 @@
-# CODING AGENTS: READ THIS FIRST
+# Tracker
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+A personal work & tasks tracker for macOS. Organizes tasks by project, with deadlines, reminders, subtasks, tags and media attachments (links, docs, voice notes, images). Everything is stored locally on your machine — nothing leaves your Mac.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Built with **Electron + React**. This implements the design exported from Claude Design in `project/Task Tracker.dc.html` (see `chats/chat1.md` for the design conversation that shaped it).
 
-## What you should do — IMPORTANT
+## Views
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+- **Today** — overdue / due today / upcoming, with stat cards and an all-clear state.
+- **Board** — one column per project, drag-free kanban-style overview.
+- **Projects** — grid of projects with progress bars → drill into any project.
+- **All tasks** — search + filter by status, priority, project.
+- **Calendar** — month view with project-colored dots per day.
+- **Reminders** — bell icon in the header, plus native macOS notifications at the scheduled reminder time.
 
-**Read `project/Task Tracker.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## Development
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+```bash
+npm install
+npm run dev
+```
 
-## About the design files
+This starts the Vite dev server and launches the Electron window pointed at it, with hot reload for the renderer.
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+## Building a Mac app
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+```bash
+npm run dist
+```
 
-## Bundle contents
+Produces an unsigned `.app` (and `.dmg`) under `release/`. Since it's unsigned, macOS Gatekeeper will block the first launch — right-click the app in Finder and choose **Open** once to allow it. The first time a reminder fires, macOS will ask for notification permission; accept it so reminders can alert you outside the app window.
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Personal task tracker` project files (HTML prototypes, assets, components)
+## Data storage
+
+All projects, tasks, and settings (accent color, hide-completed) are stored in a single JSON file at:
+
+```
+~/Library/Application Support/Tracker/data.json
+```
+
+You can inspect, back up, or hand-edit this file directly — it's the same format the app reads/writes.
+
+## Project layout
+
+- `electron/main.js` — main process: window creation, JSON file persistence (IPC), native notifications.
+- `electron/preload.js` — exposes a minimal `window.api` bridge to the renderer.
+- `src/` — the React app (views, components, styling).
+- `project/`, `chats/` — the original Claude Design export this app was built from.
