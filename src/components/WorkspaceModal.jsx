@@ -1,19 +1,17 @@
 import React from 'react';
 import { PAL } from '../lib/helpers';
 
-export default function ProjectModal({ form, onChange, onSave, onCancel, onDelete }) {
-  const isEditing = !!form.id;
-
+export default function WorkspaceModal({ form, canDelete, onChange, onSave, onCancel, onDelete }) {
   return (
     <div className="modal-overlay project-overlay" onClick={onCancel}>
       <div className="modal modal-narrow" onClick={(e) => e.stopPropagation()}>
         <div className="modal-body tight">
           <div>
-            <label className="field-label">Project name</label>
+            <label className="field-label">Workspace name</label>
             <input
               className="input"
               style={{ fontSize: 15 }}
-              placeholder="e.g. ServiceHub"
+              placeholder="e.g. Marketing"
               value={form.name}
               onChange={(e) => onChange({ name: e.target.value })}
             />
@@ -34,7 +32,7 @@ export default function ProjectModal({ form, onChange, onSave, onCancel, onDelet
           </div>
         </div>
         <div className="modal-footer">
-          {isEditing ? <button type="button" className="btn-danger-text" onClick={onDelete}>Delete</button> : <span />}
+          {canDelete ? <button type="button" className="btn-danger-text" onClick={onDelete}>Delete</button> : <span />}
           <div className="modal-footer-actions">
             <button type="button" className="btn-ghost" onClick={onCancel}>Cancel</button>
             <button type="button" className="btn-primary" onClick={onSave}>Save</button>

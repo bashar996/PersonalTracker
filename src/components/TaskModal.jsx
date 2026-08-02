@@ -3,7 +3,6 @@ import { mediaColor } from '../lib/helpers';
 
 const TYPE_OPTS = [['task', 'Task'], ['meeting', 'Meeting']];
 const STATUS_OPTS = [['todo', 'To do'], ['doing', 'In progress'], ['done', 'Done']];
-const PRIO_OPTS = [['low', 'Low'], ['med', 'Med'], ['high', 'High']];
 const MEDIA_TYPES = [['link', 'Link'], ['doc', 'Doc'], ['voice', 'Voice'], ['note', 'Note']];
 
 function Seg({ options, value, onPick, tight }) {
@@ -23,7 +22,7 @@ function Seg({ options, value, onPick, tight }) {
   );
 }
 
-export default function TaskModal({ form, projects, onChange, onSave, onCancel, onDelete, onAddSub, onToggleSub, onRemoveSub, onAddMedia, onRemoveMedia, onImage }) {
+export default function TaskModal({ form, projects, showNudge, onChange, onSave, onCancel, onDelete, onAddSub, onToggleSub, onRemoveSub, onAddMedia, onRemoveMedia, onImage }) {
   const isEditing = !!form.id;
 
   return (
@@ -36,6 +35,7 @@ export default function TaskModal({ form, projects, onChange, onSave, onCancel, 
             value={form.title}
             onChange={(e) => onChange({ title: e.target.value })}
           />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0bab0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none' }}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>
         </div>
         <div className="modal-body">
           <Seg options={TYPE_OPTS} value={form.type} onPick={(v) => onChange({ type: v })} />
@@ -53,8 +53,15 @@ export default function TaskModal({ form, projects, onChange, onSave, onCancel, 
               </select>
             </div>
             <div className="field">
-              <label className="field-label">Priority</label>
-              <Seg options={PRIO_OPTS} value={form.priority} onPick={(v) => onChange({ priority: v })} tight />
+              <label className="field-label">Priority <span className="hint">(1 = highest)</span></label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                className="input sm priority-input"
+                value={form.priority === '' || form.priority == null ? '' : form.priority}
+                onChange={(e) => onChange({ priority: e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value, 10) || 1) })}
+              />
             </div>
           </div>
 
@@ -75,6 +82,9 @@ export default function TaskModal({ form, projects, onChange, onSave, onCancel, 
           </div>
 
           <div>
+            {showNudge && (
+              <div className="nudge-banner">This task's been open a while — want to break it into a few smaller steps?</div>
+            )}
             <label className="field-label">Subtasks</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 9 }}>
               {(form.subtasks || []).map((s) => (

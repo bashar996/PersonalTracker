@@ -2,7 +2,7 @@ import React from 'react';
 import TaskRow from '../TaskRow';
 import { sortByDue, projectById } from '../../lib/helpers';
 
-export default function AllTasksView({ projects, visibleTasks, filters, onFilterChange, onOpenTask, onToggleStatus }) {
+export default function AllTasksView({ projects, visibleTasks, filters, onFilterChange, onOpenTask, onToggleStatus, accent, colorUrgency, reduceClutter }) {
   const filtered = visibleTasks.slice().sort(sortByDue);
 
   return (
@@ -23,9 +23,11 @@ export default function AllTasksView({ projects, visibleTasks, filters, onFilter
         </select>
         <select className="filter-select" value={filters.priority} onChange={(e) => onFilterChange({ priority: e.target.value })}>
           <option value="all">Any priority</option>
-          <option value="high">High</option>
-          <option value="med">Medium</option>
-          <option value="low">Low</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
         </select>
         <select className="filter-select" value={filters.projectId} onChange={(e) => onFilterChange({ projectId: e.target.value })}>
           <option value="all">All projects</option>
@@ -38,7 +40,16 @@ export default function AllTasksView({ projects, visibleTasks, filters, onFilter
       ) : (
         <div className="card-list">
           {filtered.map((t) => (
-            <TaskRow key={t.id} task={t} project={projectById(projects, t.projectId)} onOpen={onOpenTask} onToggleStatus={onToggleStatus} />
+            <TaskRow
+              key={t.id}
+              task={t}
+              project={projectById(projects, t.projectId)}
+              accent={accent}
+              colorUrgency={colorUrgency}
+              reduceClutter={reduceClutter}
+              onOpen={onOpenTask}
+              onToggleStatus={onToggleStatus}
+            />
           ))}
         </div>
       )}

@@ -1,17 +1,20 @@
 # Tracker
 
-A personal work & tasks tracker for macOS. Organizes tasks by project, with deadlines, reminders, subtasks, tags and media attachments (links, docs, voice notes, images). Everything is stored locally on your machine — nothing leaves your Mac.
+A personal work & tasks tracker for macOS. Organizes tasks by project across multiple workspaces, with deadlines, reminders, subtasks, tags and media attachments (links, docs, voice notes, images). Everything is stored locally on your machine — nothing leaves your Mac.
 
-Built with **Electron + React**. This implements the design exported from Claude Design in `project/Task Tracker.dc.html` (see `chats/chat1.md` for the design conversation that shaped it).
+Built with **Electron + React**. This implements the design exported from Claude Design in `project/Task Tracker.dc.html`, later updated by `project/Task Tracker v2.dc.html` (see `chats/chat1.md` for the design conversation that shaped it).
 
 ## Views
 
-- **Today** — overdue / due today / upcoming, with stat cards and an all-clear state.
-- **Board** — one column per project, drag-free kanban-style overview.
+- **Board** (default) — one column per project, drag-free kanban-style overview, with a priority strip on each card.
+- **Today** — Top priority / overdue / due today / upcoming, each independently collapsible, plus "Start of day" / "End of day" markdown notes. Optional **Focus mode** replaces the lists with one task at a time and an optional stopwatch.
 - **Projects** — grid of projects with progress bars → drill into any project.
-- **All tasks** — search + filter by status, priority, project.
-- **Calendar** — month view with project-colored dots per day.
-- **Reminders** — bell icon in the header, plus native macOS notifications at the scheduled reminder time.
+- **All tasks** — search + filter by status, priority (1–5), project.
+- **Calendar** — month view with project-colored dots per day, plus a markdown note per day.
+- **Settings** — accent color, hide-completed, and eight opt-in focus/attention features (focus mode, body-doubling timer, auto-break nudges, gentle reminders, reduce clutter, one thing at a time, color-coded urgency, completion celebration).
+- **Workspaces** — separate spaces (e.g. Personal / Work), each with its own projects, tasks and notes; switch via the sidebar dropdown.
+- **Dark mode** — manual toggle in the header, persisted.
+- **Reminders** — bell icon in the header, plus native macOS notifications at the scheduled reminder time (checked across every workspace, not just the active one).
 
 ## Development
 
@@ -32,13 +35,13 @@ Produces an unsigned `.app` (and `.dmg`) under `release/`. Since it's unsigned, 
 
 ## Data storage
 
-All projects, tasks, and settings (accent color, hide-completed) are stored in a single JSON file at:
+Everything — workspaces, their projects/tasks/notes, and app-wide settings (accent color, dark mode, the focus/attention toggles) — is stored in a single JSON file at:
 
 ```
 ~/Library/Application Support/Tracker/data.json
 ```
 
-You can inspect, back up, or hand-edit this file directly — it's the same format the app reads/writes.
+You can inspect, back up, or hand-edit this file directly — it's the same format the app reads/writes. Older single-workspace data files (from before workspaces existed) are migrated automatically on first launch into a "Personal" workspace.
 
 ## Project layout
 

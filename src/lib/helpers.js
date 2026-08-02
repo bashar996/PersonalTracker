@@ -1,11 +1,56 @@
 // Palette used for new projects and calendar/board color coding.
 export const PAL = ['#7c9885', '#b98a5e', '#7b8bb0', '#b06a72', '#9a8bb0', '#6f9ba3', '#a38b6f'];
 
-export const PRIO = {
-  high: { bg: '#f4ded9', fg: '#b0473b', label: 'High' },
-  med: { bg: '#f4ead4', fg: '#a2751c', label: 'Med' },
-  low: { bg: '#e6ede8', fg: '#5c7a68', label: 'Low' },
+// Legacy string priorities (pre-v2) map onto the 1-5 numeric scale (1 = highest).
+const LEGACY_PRIORITY_MAP = { high: 1, med: 2, low: 3 };
+
+export function migratePriority(p) {
+  if (typeof p === 'string') return LEGACY_PRIORITY_MAP[p] || 2;
+  const n = Number(p);
+  return n > 0 ? n : 2;
+}
+
+// Only priorities 1-3 get a colored dot; 4-5 are unmarked.
+export function priorityColor(pr) {
+  pr = Number(pr) || 0;
+  if (pr === 1) return '#c0564a';
+  if (pr === 2) return '#c99a3f';
+  return '#8a9a8f';
+}
+
+export const LIGHT_THEME = {
+  page: '#f6f4ef', sidebar: '#f0ede6', sidebarBorder: '#e6e2d8', border: '#ece8df',
+  text: '#26241f', text2: '#54514a', muted: '#8a8578', faint: '#a09a8c', secondary: '#6a675e',
+  inputBorder: '#e2ddd2', card: '#fff', modal: '#faf9f6', hover: '#f4f1ea', btnBg: '#e3dfd4',
+  chipBg: '#efece6', chipText: '#9a9488', dashedBorder: '#d6d1c4',
 };
+export const DARK_THEME = {
+  page: '#201e1a', sidebar: '#1a1815', sidebarBorder: '#2c2a25', border: '#38352e',
+  text: '#eeece5', text2: '#c7c2b4', muted: '#a9a396', faint: '#7d7969', secondary: '#b7b1a2',
+  inputBorder: '#3a372f', card: '#2a2824', modal: '#262420', hover: '#332f28', btnBg: '#3a372f',
+  chipBg: '#38352e', chipText: '#b7b1a2', dashedBorder: '#4a4740',
+};
+
+// CSS custom properties (--ptt-*) for the given theme, to spread onto a root inline style.
+export function themeVars(dark) {
+  const T = dark ? DARK_THEME : LIGHT_THEME;
+  const vars = {};
+  Object.keys(T).forEach((k) => { vars['--ptt-' + k] = T[k]; });
+  return vars;
+}
+
+// Color for the small dot next to a task's due label when "color-coded urgency" is on.
+export function urgencyDotColor(dueKind, accent) {
+  if (dueKind === 'overdue') return '#b0473b';
+  if (dueKind === 'today') return accent;
+  if (dueKind === 'soon') return '#c99a3f';
+  return null;
+}
+
+export function fmtTimer(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return pad(m) + ':' + pad(s);
+}
 
 const MEDIA_COLORS = {
   link: { bg: '#e7ecf4', fg: '#5a6a8b', icon: 'URL' },
@@ -90,7 +135,7 @@ export function filterTasks(tasks, filters, hideCompleted) {
       (t.tags || []).join(' ').toLowerCase().includes(q));
   }
   if (filters.status !== 'all') filtered = filtered.filter((t) => t.status === filters.status);
-  if (filters.priority !== 'all') filtered = filtered.filter((t) => t.priority === filters.priority);
+  if (filters.priority !== 'all') filtered = filtered.filter((t) => String(t.priority) === filters.priority);
   if (filters.projectId !== 'all') filtered = filtered.filter((t) => t.projectId === filters.projectId);
   if (hideCompleted) filtered = filtered.filter((t) => t.status !== 'done');
   return filtered;

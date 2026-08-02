@@ -2,7 +2,7 @@ import React from 'react';
 import TaskRow from '../TaskRow';
 import { sortByDue } from '../../lib/helpers';
 
-export default function ProjectDetailView({ project, tasks, onOpenTask, onToggleStatus, onAddTask, onEditProject }) {
+export default function ProjectDetailView({ project, tasks, onOpenTask, onToggleStatus, onAddTask, onEditProject, accent, colorUrgency, reduceClutter }) {
   if (!project) return null;
   const ts = tasks.filter((t) => t.projectId === project.id);
   const done = ts.filter((t) => t.status === 'done');
@@ -14,7 +14,7 @@ export default function ProjectDetailView({ project, tasks, onOpenTask, onToggle
   const renderList = (list) => (
     <div className="card-list">
       {list.map((t) => (
-        <TaskRow key={t.id} task={t} project={project} onOpen={onOpenTask} onToggleStatus={onToggleStatus} />
+        <TaskRow key={t.id} task={t} project={project} accent={accent} colorUrgency={colorUrgency} reduceClutter={reduceClutter} onOpen={onOpenTask} onToggleStatus={onToggleStatus} />
       ))}
     </div>
   );

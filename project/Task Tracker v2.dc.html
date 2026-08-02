@@ -40,6 +40,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
 @media (max-width:560px){
   .pt-stats{grid-template-columns:repeat(2,1fr) !important;}
   .pt-newlabel{display:none;}
+  .ptt-daynotes-grid{grid-template-columns:1fr !important;}
+  .ptt-boardnotes-grid{grid-template-columns:1fr !important;}
   .pt-newbtn{padding:0 !important;width:40px;justify-content:center;}
   .pt-frow{flex-direction:column !important;gap:16px !important;}
   .pt-sub{margin-top:2px;}
@@ -233,6 +235,20 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
             </div>
           </div>
 
+          <sc-if value="{{ hasTopPriority }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:24px;">
+              <div style="display:flex;align-items:center;gap:6px;margin:0 4px 9px;cursor:pointer;" onClick="{{ onToggleTopPrioritySection }}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c0564a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="{{ topPriorityChevronStyle }}"><path d="M6 9l6 6 6-6"></path></svg>
+                <h2 style="font:600 12px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:#c0564a;margin:0;">Top priority</h2>
+              </div>
+              <sc-if value="{{ topPriorityOpen }}" hint-placeholder-val="{{ true }}">
+                <div style="background:var(--ptt-card);border:1px solid var(--ptt-border);border-radius:14px;padding:6px;">
+                  <sc-for list="{{ topPriorityTasks }}" as="t" hint-placeholder-count="1"><dc-import name="TaskRow" task="{{ t }}" hint-size="100%,66px"></dc-import></sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ hasOverdue }}" hint-placeholder-val="{{ false }}">
             <div style="margin-bottom:24px;">
               <div style="display:flex;align-items:center;gap:6px;margin:0 4px 9px;cursor:pointer;" onClick="{{ onToggleOverdueSection }}">
@@ -286,34 +302,39 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
             <div style="text-align:center;padding:6px 4px 24px;font:500 12.5px 'Instrument Sans';color:var(--ptt-faint);">+{{ oneThingHidden }} more tucked away — One thing at a time is on in Settings</div>
           </sc-if>
 
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin:0 4px 9px;">
-              <h2 style="font:600 12px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:var(--ptt-faint);margin:0;">Today's notes</h2>
-              <div style="display:flex;align-items:center;gap:12px;">
-                <sc-if value="{{ todayNotesEditing }}" hint-placeholder-val="{{ true }}"><span style="font:500 11px 'Instrument Sans';color:#b3ada0;">Markdown supported</span></sc-if>
-                <sc-if value="{{ todayNotesPreviewMode }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ onToggleTodayNotesEdit }}" style="border:none;background:transparent;color:var(--ptt-muted);cursor:pointer;padding:2px;display:flex;align-items:center;gap:5px;font:500 11.5px 'Instrument Sans';">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>Edit
-                  </button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="ptt-daynotes-grid">
+            <sc-for list="{{ dayNoteCards }}" as="nc" hint-placeholder-count="2">
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin:0 4px 9px;">
+                  <h2 style="display:flex;align-items:center;gap:7px;font:600 12px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:var(--ptt-faint);margin:0;"><span>{{ nc.icon }}</span>{{ nc.label }}</h2>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <sc-if value="{{ nc.editing }}" hint-placeholder-val="{{ true }}"><span style="font:500 11px 'Instrument Sans';color:#b3ada0;">Markdown supported</span></sc-if>
+                    <sc-if value="{{ nc.previewMode }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ nc.onToggleEdit }}" style="border:none;background:transparent;color:var(--ptt-muted);cursor:pointer;padding:2px;display:flex;align-items:center;gap:5px;font:500 11.5px 'Instrument Sans';">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>Edit
+                      </button>
+                    </sc-if>
+                  </div>
+                </div>
+                <sc-if value="{{ nc.editing }}" hint-placeholder-val="{{ true }}">
+                  <textarea value="{{ nc.value }}" onChange="{{ nc.onChange }}" onBlur="{{ nc.onBlur }}" placeholder="{{ nc.placeholder }}" style="width:100%;min-height:180px;padding:14px 16px;border:1px solid var(--ptt-border);border-radius:14px;background:var(--ptt-card);font:400 14px/1.6 'Instrument Sans';color:var(--ptt-text);"></textarea>
+                </sc-if>
+                <sc-if value="{{ nc.previewMode }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ nc.onToggleEdit }}" style="min-height:180px;padding:14px 16px;border:1px solid var(--ptt-border);border-radius:14px;background:var(--ptt-card);cursor:text;display:flex;flex-direction:column;">
+                    <sc-for list="{{ nc.blocks }}" as="b" hint-placeholder-count="0">
+                      <sc-if value="{{ b.isBr }}" hint-placeholder-val="{{ false }}"><div style="height:10px;"></div></sc-if>
+                      <sc-if value="{{ b.isH1 }}" hint-placeholder-val="{{ false }}"><div style="font:700 20px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                      <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ false }}"><div style="font:700 17px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                      <sc-if value="{{ b.isH3 }}" hint-placeholder-val="{{ false }}"><div style="font:600 15px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                      <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ true }}"><div style="font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                      <sc-if value="{{ b.isLi }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);">•</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
+                      <sc-if value="{{ b.isLio }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);min-width:16px;">{{ b.marker }}</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
+                    </sc-for>
+                    <sc-if value="{{ nc.isEmpty }}" hint-placeholder-val="{{ false }}"><div style="font:400 14px/1.6 'Instrument Sans';color:var(--ptt-faint);">{{ nc.emptyLabel }}</div></sc-if>
+                  </div>
                 </sc-if>
               </div>
-            </div>
-            <sc-if value="{{ todayNotesEditing }}" hint-placeholder-val="{{ true }}">
-              <textarea value="{{ todayNotes }}" onChange="{{ onTodayNotes }}" onBlur="{{ onTodayNotesBlur }}" placeholder="Jot down anything about today… Markdown: **bold**, *italic*, # heading, - list" style="width:100%;min-height:220px;padding:14px 16px;border:1px solid var(--ptt-border);border-radius:14px;background:var(--ptt-card);font:400 14px/1.6 'Instrument Sans';color:var(--ptt-text);"></textarea>
-            </sc-if>
-            <sc-if value="{{ todayNotesPreviewMode }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ onToggleTodayNotesEdit }}" style="min-height:220px;padding:14px 16px;border:1px solid var(--ptt-border);border-radius:14px;background:var(--ptt-card);cursor:text;display:flex;flex-direction:column;">
-                <sc-for list="{{ todayNotesBlocks }}" as="b" hint-placeholder-count="0">
-                  <sc-if value="{{ b.isBr }}" hint-placeholder-val="{{ false }}"><div style="height:10px;"></div></sc-if>
-                  <sc-if value="{{ b.isH1 }}" hint-placeholder-val="{{ false }}"><div style="font:700 20px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
-                  <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ false }}"><div style="font:700 17px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
-                  <sc-if value="{{ b.isH3 }}" hint-placeholder-val="{{ false }}"><div style="font:600 15px/1.4 'Instrument Sans';margin:4px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
-                  <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ true }}"><div style="font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
-                  <sc-if value="{{ b.isLi }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);">•</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
-                  <sc-if value="{{ b.isLio }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;font:400 14px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);min-width:16px;">{{ b.marker }}</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
-                </sc-for>
-              </div>
-            </sc-if>
+            </sc-for>
           </div>
         </div>
         </sc-if>
@@ -333,10 +354,46 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
               </div>
               <div style="display:flex;flex-direction:column;gap:8px;padding:0 8px 12px;">
                 <sc-for list="{{ col.tasks }}" as="t" hint-placeholder-count="2">
-                  <div style="background:var(--ptt-card);border:1px solid var(--ptt-border);border-radius:11px;"><dc-import name="TaskRow" task="{{ t }}" hint-size="100%,66px"></dc-import></div>
+                  <div style="background:var(--ptt-card);border:1px solid var(--ptt-border);border-radius:11px;overflow:hidden;">
+                    <sc-if value="{{ t.hasPriorityBadge }}" hint-placeholder-val="{{ false }}"><div style="{{ t.priorityStripStyle }}"></div></sc-if>
+                    <dc-import name="TaskRow" task="{{ t }}" hint-size="100%,66px"></dc-import>
+                  </div>
                 </sc-for>
                 <sc-if value="{{ col.isEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:16px 10px;text-align:center;font:400 12.5px 'Instrument Sans';color:#b3ada0;">No tasks</div></sc-if>
               </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px;max-width:none;" class="ptt-boardnotes-grid">
+          <sc-for list="{{ dayNoteCards }}" as="nc" hint-placeholder-count="2">
+            <div style="background:var(--ptt-sidebar);border:1px solid var(--ptt-sidebarBorder);border-radius:16px;padding:14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+                <span style="display:flex;align-items:center;gap:7px;font:600 12px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:var(--ptt-faint);">
+                  <span>{{ nc.icon }}</span>{{ nc.label }}
+                </span>
+                <sc-if value="{{ nc.previewMode }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ nc.onToggleEdit }}" style="border:none;background:transparent;color:var(--ptt-muted);cursor:pointer;padding:2px;display:flex;align-items:center;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+                  </button>
+                </sc-if>
+              </div>
+              <sc-if value="{{ nc.editing }}" hint-placeholder-val="{{ true }}">
+                <textarea value="{{ nc.value }}" onChange="{{ nc.onChange }}" onBlur="{{ nc.onBlur }}" placeholder="{{ nc.placeholder }}" style="width:100%;min-height:120px;padding:10px 12px;border:1px solid var(--ptt-border);border-radius:11px;background:var(--ptt-card);font:400 13px/1.6 'Instrument Sans';color:var(--ptt-text);"></textarea>
+              </sc-if>
+              <sc-if value="{{ nc.previewMode }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ nc.onToggleEdit }}" style="min-height:120px;padding:10px 12px;border:1px solid var(--ptt-border);border-radius:11px;background:var(--ptt-card);cursor:text;">
+                  <sc-for list="{{ nc.blocks }}" as="b" hint-placeholder-count="0">
+                    <sc-if value="{{ b.isBr }}" hint-placeholder-val="{{ false }}"><div style="height:7px;"></div></sc-if>
+                    <sc-if value="{{ b.isH1 }}" hint-placeholder-val="{{ false }}"><div style="font:700 15px/1.4 'Instrument Sans';margin:2px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                    <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ false }}"><div style="font:700 14px/1.4 'Instrument Sans';margin:2px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                    <sc-if value="{{ b.isH3 }}" hint-placeholder-val="{{ false }}"><div style="font:600 13.5px/1.4 'Instrument Sans';margin:2px 0;color:var(--ptt-text);"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                    <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ true }}"><div style="font:400 13px/1.6 'Instrument Sans';color:#3a3730;"><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></div></sc-if>
+                    <sc-if value="{{ b.isLi }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:7px;font:400 13px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);">•</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
+                    <sc-if value="{{ b.isLio }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:7px;font:400 13px/1.6 'Instrument Sans';color:#3a3730;"><span style="flex:none;color:var(--ptt-faint);min-width:14px;">{{ b.marker }}</span><span><sc-for list="{{ b.spans }}" as="s" hint-placeholder-count="0"><span style="{{ s.style }}">{{ s.text }}</span></sc-for></span></div></sc-if>
+                  </sc-for>
+                  <sc-if value="{{ nc.isEmpty }}" hint-placeholder-val="{{ false }}"><div style="font:400 13px/1.6 'Instrument Sans';color:var(--ptt-faint);">{{ nc.emptyLabel }}</div></sc-if>
+                </div>
+              </sc-if>
             </div>
           </sc-for>
         </div>
@@ -402,7 +459,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
               <option value="all">All statuses</option><option value="todo">To do</option><option value="doing">In progress</option><option value="done">Done</option>
             </select>
             <select value="{{ fPriority }}" onChange="{{ onFPriority }}" style="padding:9px 11px;border:1px solid var(--ptt-inputBorder);border-radius:10px;background:var(--ptt-card);font-size:13.5px;color:var(--ptt-text2);cursor:pointer;">
-              <option value="all">Any priority</option><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option>
+              <option value="all">Any priority</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
             </select>
             <select value="{{ fProject }}" onChange="{{ onFProject }}" style="padding:9px 11px;border:1px solid var(--ptt-inputBorder);border-radius:10px;background:var(--ptt-card);font-size:13.5px;color:var(--ptt-text2);cursor:pointer;">
               <option value="all">All projects</option>
@@ -527,8 +584,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#4a7862 !impor
             <select value="{{ m.projectId }}" onChange="{{ m.onProject }}" style="width:100%;padding:10px 12px;border:1px solid var(--ptt-inputBorder);border-radius:10px;background:var(--ptt-card);font-size:14px;color:var(--ptt-text);cursor:pointer;"><sc-for list="{{ m.projectOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.value }}">{{ o.label }}</option></sc-for></select>
           </div>
           <div style="flex:1;">
-            <label style="font:600 10.5px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:var(--ptt-faint);margin-bottom:8px;display:block;">Priority</label>
-            <div style="display:flex;gap:6px;"><sc-for list="{{ m.prioSeg }}" as="s" hint-placeholder-count="3"><button style="{{ s.style }}" onClick="{{ s.onClick }}">{{ s.label }}</button></sc-for></div>
+            <label style="font:600 10.5px/1 'Instrument Sans';letter-spacing:.05em;text-transform:uppercase;color:var(--ptt-faint);margin-bottom:8px;display:block;">Priority <span style="color:var(--ptt-faint);font-weight:400;text-transform:none;">(1 = highest)</span></label>
+            <input type="number" min="1" step="1" value="{{ m.priorityValue }}" onChange="{{ m.onPriority }}" style="width:90px;padding:9px 11px;border:1px solid var(--ptt-inputBorder);border-radius:10px;background:var(--ptt-card);font:500 13.5px 'Instrument Sans';color:var(--ptt-text);">
           </div>
         </div>
 
@@ -665,7 +722,7 @@ class Component extends DCLogic {
     this.PRIO={high:{bg:'#f4ded9',fg:'#b0473b',label:'High'},med:{bg:'#f4ead4',fg:'#a2751c',label:'Med'},low:{bg:'#e6ede8',fg:'#5c7a68',label:'Low'}};
     this.chipBase="display:inline-flex;align-items:center;gap:4px;font:500 11px/1 'Instrument Sans',system-ui,sans-serif;padding:4px 8px;border-radius:6px;white-space:nowrap;letter-spacing:.01em;";
     this.wsDataCache={};
-    this.state={ data:null, workspaces:[], activeWorkspaceId:null, wsMenuOpen:false, view:'today', selectedProjectId:null,
+    this.state={ data:null, workspaces:[], activeWorkspaceId:null, wsMenuOpen:false, view:'board', selectedProjectId:null,
       filters:{search:'',status:'all',priority:'all',projectId:'all'},
       cal:null, calSel:null, modal:null, form:null, remindersOpen:false, navOpen:false, sideCollapsed:false,
       collapsedSections:{}, notesEditing:{}, darkMode:false,
@@ -677,12 +734,18 @@ class Component extends DCLogic {
     try{ store=JSON.parse(localStorage.getItem('ptt.ws.v1')); }catch(e){}
     if(!store||!store.workspaces||!store.workspaces.length){ store=this.seedStore(); }
     this.wsDataCache=store.data||{};
+    const PMAP={high:1,med:2,low:3};
+    Object.keys(this.wsDataCache).forEach(wid=>{
+      const wd=this.wsDataCache[wid];if(!wd||!wd.tasks)return;
+      wd.tasks=wd.tasks.map(t=>typeof t.priority==='string'?Object.assign({},t,{priority:PMAP[t.priority]||2}):t);
+    });
     const activeId=(store.workspaces.some(w=>w.id===store.activeId))?store.activeId:store.workspaces[0].id;
     const data=this.wsDataCache[activeId]||{projects:[],tasks:[],notes:{}};
     const now=new Date();
     let darkMode=false;try{darkMode=localStorage.getItem('ptt.dark')==='1';}catch(e){}
     let settings=this.state.settings;try{const saved=JSON.parse(localStorage.getItem('ptt.settings'));if(saved)settings=Object.assign({},settings,saved);}catch(e){}
     this.setState({ workspaces:store.workspaces, activeWorkspaceId:activeId, data, cal:{y:now.getFullYear(),m:now.getMonth()}, calSel:this.ymd(now), darkMode, settings });
+    this.saveStore();
   }
   componentWillUnmount(){clearInterval(this._timerInterval);clearTimeout(this._celTimer);}
   toggleSetting(key){this.setState(s=>{const settings=Object.assign({},s.settings,{[key]:!s.settings[key]});try{localStorage.setItem('ptt.settings',JSON.stringify(settings));}catch(e){}return{settings};});}
@@ -773,7 +836,7 @@ class Component extends DCLogic {
   switchWorkspace(id){
     if(id===this.state.activeWorkspaceId){this.setState({wsMenuOpen:false});return;}
     const data=this.wsDataCache[id]||{projects:[],tasks:[],notes:{}};
-    this.setState({activeWorkspaceId:id,data,view:'today',selectedProjectId:null,
+    this.setState({activeWorkspaceId:id,data,view:'board',selectedProjectId:null,
       filters:{search:'',status:'all',priority:'all',projectId:'all'},wsMenuOpen:false,navOpen:false},()=>this.saveStore());
   }
   newWorkspace(){this.setState({modal:'workspace',form:{id:null,name:'',color:this.PAL[this.state.workspaces.length%this.PAL.length]},wsMenuOpen:false});}
@@ -786,7 +849,7 @@ class Component extends DCLogic {
     }else{
       const id=this.uid();const workspaces=this.state.workspaces.concat([{id,name:f.name.trim(),color:f.color}]);
       this.wsDataCache[id]={projects:[],tasks:[],notes:{}};
-      this.setState({workspaces,activeWorkspaceId:id,data:this.wsDataCache[id],view:'today',selectedProjectId:null,
+      this.setState({workspaces,activeWorkspaceId:id,data:this.wsDataCache[id],view:'board',selectedProjectId:null,
         filters:{search:'',status:'all',priority:'all',projectId:'all'},modal:null,form:null},()=>this.saveStore());
     }
   }
@@ -796,18 +859,18 @@ class Component extends DCLogic {
     delete this.wsDataCache[f.id];
     let activeWorkspaceId=this.state.activeWorkspaceId,data=this.state.data;
     if(activeWorkspaceId===f.id){activeWorkspaceId=workspaces[0].id;data=this.wsDataCache[activeWorkspaceId]||{projects:[],tasks:[],notes:{}};}
-    this.setState({workspaces,activeWorkspaceId,data,modal:null,form:null,view:'today',selectedProjectId:null},()=>this.saveStore());
+    this.setState({workspaces,activeWorkspaceId,data,modal:null,form:null,view:'board',selectedProjectId:null},()=>this.saveStore());
   }
   seedWork(){
     const P=this.PAL;
     const projects=[{id:'wp1',name:'Acme Launch',color:P[5]},{id:'wp2',name:'Ops',color:P[4]}];
     const T=(o)=>Object.assign({id:this.uid(),tags:[],subtasks:[],media:[],type:'task',createdAt:Date.now()},o);
     const tasks=[
-      T({projectId:'wp1',title:'Draft launch announcement',priority:'high',status:'doing',due:this.offset(1,17,0)}),
-      T({projectId:'wp1',title:'Finalize pricing page',priority:'med',status:'todo',due:this.offset(3,12,0)}),
-      T({projectId:'wp1',title:'Kickoff call',type:'meeting',priority:'med',status:'todo',due:this.offset(0,11,0),reminder:this.offset(0,10,45)}),
-      T({projectId:'wp2',title:'Vendor contract review',priority:'low',status:'todo',due:this.offset(6,12,0)}),
-      T({projectId:'wp2',title:'Quarterly report',priority:'high',status:'done',due:this.offset(-2,12,0)})
+      T({projectId:'wp1',title:'Draft launch announcement',priority:1,status:'doing',due:this.offset(1,17,0)}),
+      T({projectId:'wp1',title:'Finalize pricing page',priority:2,status:'todo',due:this.offset(3,12,0)}),
+      T({projectId:'wp1',title:'Kickoff call',type:'meeting',priority:2,status:'todo',due:this.offset(0,11,0),reminder:this.offset(0,10,45)}),
+      T({projectId:'wp2',title:'Vendor contract review',priority:3,status:'todo',due:this.offset(6,12,0)}),
+      T({projectId:'wp2',title:'Quarterly report',priority:1,status:'done',due:this.offset(-2,12,0)})
     ];
     return {projects,tasks,notes:{},v:1};
   }
@@ -830,21 +893,21 @@ class Component extends DCLogic {
     ];
     const T=(o)=>Object.assign({id:this.uid(),tags:[],subtasks:[],media:[],type:'task',createdAt:Date.now()},o);
     const tasks=[
-      T({projectId:'p1',title:'Fix login redirect loop',priority:'high',status:'doing',due:this.offset(-1,17,0),tags:['bug'],subtasks:[{id:'s1',text:'Reproduce on staging',done:true},{id:'s2',text:'Patch auth guard',done:false},{id:'s3',text:'Add regression test',done:false}]}),
-      T({projectId:'p1',title:'QA regression pass',priority:'med',status:'todo',due:this.offset(2,15,0),reminder:this.offset(2,14,0)}),
-      T({projectId:'p1',title:'Weekly team sync',type:'meeting',priority:'low',status:'todo',due:this.offset(1,10,0),reminder:this.offset(1,9,45)}),
-      T({projectId:'p2',title:'New dashboard wireframes',priority:'high',status:'doing',due:this.offset(0,16,0),tags:['design'],media:[{id:'m1',type:'image',name:'dashboard-v2.png'},{id:'m2',type:'link',name:'Figma board',url:'#'}],subtasks:[{id:'s4',text:'Sketch layout',done:true},{id:'s5',text:'High-fi mockup',done:false}]}),
-      T({projectId:'p2',title:'Design review',type:'meeting',priority:'med',status:'todo',due:this.offset(0,14,0),reminder:this.offset(0,13,45)}),
-      T({projectId:'p2',title:'Migrate to design tokens',priority:'med',status:'todo',due:this.offset(5,12,0)}),
-      T({projectId:'p2',title:'User research synthesis',priority:'low',status:'done',due:this.offset(-3,12,0),media:[{id:'m3',type:'doc',name:'research.pdf'}]}),
-      T({projectId:'p3',title:'Ticket triage automation spec',priority:'high',status:'todo',due:this.offset(3,11,0),tags:['spec']}),
-      T({projectId:'p3',title:'API rate limiting',priority:'med',status:'doing',due:this.offset(4,17,0)}),
-      T({projectId:'p3',title:'Onboarding docs',priority:'low',status:'todo',due:this.offset(9,12,0),media:[{id:'m4',type:'link',name:'Notion doc',url:'#'}]}),
-      T({projectId:'p3',title:'Incident postmortem',priority:'med',status:'done',due:this.offset(-2,15,0)}),
-      T({projectId:'p4',title:'Renew passport',priority:'high',status:'todo',due:this.offset(6,9,0),reminder:this.offset(5,9,0)}),
-      T({projectId:'p4',title:'Dentist appointment',type:'meeting',priority:'med',status:'todo',due:this.offset(1,8,30),reminder:this.offset(1,7,30)}),
-      T({projectId:'p4',title:'Book flights for offsite',priority:'med',status:'todo',due:this.offset(0,20,0)}),
-      T({projectId:'p4',title:'Read "Design Systems"',priority:'low',status:'todo',due:''})
+      T({projectId:'p1',title:'Fix login redirect loop',priority:1,status:'doing',due:this.offset(-1,17,0),tags:['bug'],subtasks:[{id:'s1',text:'Reproduce on staging',done:true},{id:'s2',text:'Patch auth guard',done:false},{id:'s3',text:'Add regression test',done:false}]}),
+      T({projectId:'p1',title:'QA regression pass',priority:2,status:'todo',due:this.offset(2,15,0),reminder:this.offset(2,14,0)}),
+      T({projectId:'p1',title:'Weekly team sync',type:'meeting',priority:3,status:'todo',due:this.offset(1,10,0),reminder:this.offset(1,9,45)}),
+      T({projectId:'p2',title:'New dashboard wireframes',priority:1,status:'doing',due:this.offset(0,16,0),tags:['design'],media:[{id:'m1',type:'image',name:'dashboard-v2.png'},{id:'m2',type:'link',name:'Figma board',url:'#'}],subtasks:[{id:'s4',text:'Sketch layout',done:true},{id:'s5',text:'High-fi mockup',done:false}]}),
+      T({projectId:'p2',title:'Design review',type:'meeting',priority:2,status:'todo',due:this.offset(0,14,0),reminder:this.offset(0,13,45)}),
+      T({projectId:'p2',title:'Migrate to design tokens',priority:2,status:'todo',due:this.offset(5,12,0)}),
+      T({projectId:'p2',title:'User research synthesis',priority:3,status:'done',due:this.offset(-3,12,0),media:[{id:'m3',type:'doc',name:'research.pdf'}]}),
+      T({projectId:'p3',title:'Ticket triage automation spec',priority:1,status:'todo',due:this.offset(3,11,0),tags:['spec']}),
+      T({projectId:'p3',title:'API rate limiting',priority:2,status:'doing',due:this.offset(4,17,0)}),
+      T({projectId:'p3',title:'Onboarding docs',priority:3,status:'todo',due:this.offset(9,12,0),media:[{id:'m4',type:'link',name:'Notion doc',url:'#'}]}),
+      T({projectId:'p3',title:'Incident postmortem',priority:2,status:'done',due:this.offset(-2,15,0)}),
+      T({projectId:'p4',title:'Renew passport',priority:1,status:'todo',due:this.offset(6,9,0),reminder:this.offset(5,9,0)}),
+      T({projectId:'p4',title:'Dentist appointment',type:'meeting',priority:2,status:'todo',due:this.offset(1,8,30),reminder:this.offset(1,7,30)}),
+      T({projectId:'p4',title:'Book flights for offsite',priority:2,status:'todo',due:this.offset(0,20,0)}),
+      T({projectId:'p4',title:'Read "Design Systems"',priority:3,status:'todo',due:''})
     ];
     return {projects,tasks,notes:{},v:1};
   }
@@ -857,7 +920,7 @@ class Component extends DCLogic {
   cycleStatus(id){const order=['todo','doing','done'];let becameDone=false;const tasks=this.state.data.tasks.map(t=>{if(t.id!==id)return t;const ns=order[(order.indexOf(t.status)+1)%3];if(ns==='done'&&t.status!=='done')becameDone=true;return Object.assign({},t,{status:ns});});this.persist(Object.assign({},this.state.data,{tasks}));if(becameDone&&this.state.settings.celebration)this.celebrate();}
   toForm(t){return Object.assign({},t,{_newSub:'',_tagsText:(t.tags||[]).join(', '),_mediaName:'',_mediaType:'link'});}
   openTask(id){const t=this.state.data.tasks.find(x=>x.id===id);if(!t)return;this.setState({modal:'task',form:this.toForm(t),remindersOpen:false});}
-  newTask(projectId){const first=(this.state.data.projects[0]||{}).id;this.setState({modal:'task',form:this.toForm({id:null,projectId:projectId||first,type:'task',status:'todo',priority:'med',title:'',notes:'',due:'',reminder:'',tags:[],subtasks:[],media:[]}),remindersOpen:false});}
+  newTask(projectId){const first=(this.state.data.projects[0]||{}).id;this.setState({modal:'task',form:this.toForm({id:null,projectId:projectId||first,type:'task',status:'todo',priority:2,title:'',notes:'',due:'',reminder:'',tags:[],subtasks:[],media:[]}),remindersOpen:false});}
   setForm(p){this.setState(s=>({form:Object.assign({},s.form,p)}));}
   addSub(){const f=this.state.form;const t=(f._newSub||'').trim();if(!t)return;this.setForm({subtasks:f.subtasks.concat([{id:this.uid(),text:t,done:false}]),_newSub:''});}
   toggleSub(id){this.setForm({subtasks:this.state.form.subtasks.map(s=>s.id===id?Object.assign({},s,{done:!s.done}):s)});}
@@ -905,8 +968,9 @@ class Component extends DCLogic {
       else if(di.kind==='soon')dueStyle="font:500 12px 'Instrument Sans';color:var(--ptt-secondary);";}
     const clutter=this.state.settings.reduceClutter,urgencyOn=this.state.settings.colorUrgency;
     // priority — a single colour dot (high/med only)
-    const showPrio=(t.priority==='high'||t.priority==='med')&&!clutter;
-    const prioColor=t.priority==='high'?'#c0564a':'#c99a3f';
+    const pr=Number(t.priority)||0;
+    const showPrio=pr>0&&pr<=3&&!clutter;
+    const prioColor=pr===1?'#c0564a':pr===2?'#c99a3f':'#8a9a8f';
     // tags — the only subdued chips, clustered
     const tags=clutter?[]:(t.tags||[]).map(tg=>({text:'#'+tg,style:"font:500 11px 'Instrument Sans';color:var(--ptt-chipText);background:var(--ptt-chipBg);padding:2px 7px;border-radius:5px;"}));
     const dn=(t.subtasks||[]).filter(s=>s.done).length;
@@ -925,6 +989,8 @@ class Component extends DCLogic {
       showSub:(t.subtasks||[]).length>0&&!clutter,subLabel:dn+'/'+(t.subtasks||[]).length,
       showMedia:(t.media||[]).length>0&&!clutter,mediaLabel:String((t.media||[]).length),
       showPrio,priorityDotStyle:"flex:none;width:8px;height:8px;border-radius:50%;background:"+prioColor+";",
+      hasPriorityBadge:pr>0,priorityBadgeLabel:'P'+pr,priorityBadgeStyle:"font:700 10px 'Instrument Sans';padding:2px 6px;border-radius:6px;background:"+this.rgba(prioColor,.15)+";color:"+prioColor+";",
+      priorityStripStyle:"height:3px;border-radius:11px 11px 0 0;background:"+prioColor+";",
       urgencyBg,showUrgencyDot:urgencyDotColor!=='transparent',urgencyDotStyle:"flex:none;width:6px;height:6px;border-radius:50%;background:"+urgencyDotColor+";",
       onOpen:()=>this.openTask(t.id),onToggle:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.cycleStatus(t.id);}};
   }
@@ -959,6 +1025,8 @@ class Component extends DCLogic {
     const cat={overdue:[],today:[],upcoming:[]};
     openT.forEach(t=>{const di=this.dueInfo(t);if(!di)return;if(di.kind==='overdue')cat.overdue.push(t);else if(di.kind==='today')cat.today.push(t);else cat.upcoming.push(t);});
     cat.overdue.sort(byDue);cat.today.sort(byDue);cat.upcoming.sort(byDue);
+    const topPriority=openT.filter(t=>Number(t.priority)===1).sort(byDue);
+    const topIds=new Set(topPriority.map(t=>t.id));
     const stat={overdue:cat.overdue.length,today:cat.today.length,doing:d.tasks.filter(t=>t.status==='doing').length,done:d.tasks.filter(t=>t.status==='done').length};
     // focus mode queue
     const focusQueue=cat.overdue.concat(cat.today,cat.upcoming);
@@ -969,13 +1037,14 @@ class Component extends DCLogic {
     // one-thing-at-a-time budget
     let oneBudget=this.state.settings.oneThing?3:Infinity;
     const takeBudget=arr=>{if(oneBudget<=0)return[];const t=arr.slice(0,oneBudget);oneBudget-=t.length;return t;};
-    const overdueShown=takeBudget(cat.overdue),todayDueShown=takeBudget(cat.today),upcomingShown=takeBudget(cat.upcoming);
+    const topPriorityShown=takeBudget(topPriority);
+    const overdueShown=takeBudget(cat.overdue.filter(t=>!topIds.has(t.id))),todayDueShown=takeBudget(cat.today.filter(t=>!topIds.has(t.id))),upcomingShown=takeBudget(cat.upcoming.filter(t=>!topIds.has(t.id)));
     const oneThingHidden=(cat.overdue.length+cat.today.length+cat.upcoming.length)-(overdueShown.length+todayDueShown.length+upcomingShown.length);
     const dateLabel=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()]+', '+['January','February','March','April','May','June','July','August','September','October','November','December'][now.getMonth()]+' '+now.getDate();
     const view=this.state.view;
     // nav
     const collapsed=this.state.sideCollapsed;
-    const navDef=[{key:'today',label:'Today'},{key:'board',label:'Board'},{key:'projects',label:'Projects'},{key:'all',label:'All tasks'},{key:'calendar',label:'Calendar'},{key:'settings',label:'Settings'}];
+    const navDef=[{key:'board',label:'Board'},{key:'today',label:'Today'},{key:'projects',label:'Projects'},{key:'all',label:'All tasks'},{key:'calendar',label:'Calendar'},{key:'settings',label:'Settings'}];
     const navItems=navDef.map(n=>{const active=view===n.key;let count='';if(n.key==='today')count=(cat.overdue.length+cat.today.length)||'';if(n.key==='all')count=openT.length||'';
       return{fullLabel:n.label,count:count===''?'':String(count),hasCount:count!==''&&!collapsed,
         isToday:n.key==='today',isBoard:n.key==='board',isProjects:n.key==='projects',isAll:n.key==='all',isCalendar:n.key==='calendar',isSettingsIcon:n.key==='settings',
@@ -1002,7 +1071,7 @@ class Component extends DCLogic {
     const F=this.state.filters;let filtered=d.tasks.slice();
     if(F.search){const q=F.search.toLowerCase();filtered=filtered.filter(t=>(t.title||'').toLowerCase().indexOf(q)>=0||(t.notes||'').toLowerCase().indexOf(q)>=0||(t.tags||[]).join(' ').toLowerCase().indexOf(q)>=0);}
     if(F.status!=='all')filtered=filtered.filter(t=>t.status===F.status);
-    if(F.priority!=='all')filtered=filtered.filter(t=>t.priority===F.priority);
+    if(F.priority!=='all')filtered=filtered.filter(t=>String(t.priority)===F.priority);
     if(F.projectId!=='all')filtered=filtered.filter(t=>t.projectId===F.projectId);
     if(hide)filtered=filtered.filter(t=>t.status!=='done');
     filtered.sort(byDue);const filteredVM=filtered.map(vm);
@@ -1030,7 +1099,7 @@ class Component extends DCLogic {
         onTitle:onF('title'),onNotes:onF('notes'),onDue:onF('due'),onReminder:onF('reminder'),onTags:onF('_tagsText'),onProject:onF('projectId'),onNewSub:onF('_newSub'),onMediaName:onF('_mediaName'),onMediaType:onF('_mediaType'),
         typeSeg:[['task','Task'],['meeting','Meeting']].map(x=>({label:x[1],style:seg(f.type===x[0]),onClick:()=>this.setForm({type:x[0]})})),
         statusSeg:[['todo','To do'],['doing','In progress'],['done','Done']].map(x=>({label:x[1],style:seg(f.status===x[0]),onClick:()=>this.setForm({status:x[0]})})),
-        prioSeg:[['low','Low'],['med','Med'],['high','High']].map(x=>({label:x[1],style:seg(f.priority===x[0]),onClick:()=>this.setForm({priority:x[0]})})),
+        priorityValue:f.priority||'',onPriority:e=>this.setForm({priority:e.target.value===''?'':Math.max(1,parseInt(e.target.value,10)||1)}),
         projectOptions:d.projects.map(p=>({value:p.id,label:p.name})),
         subtasks:f.subtasks.map(s=>({text:s.text,mark:s.done?'✓':'',boxStyle:"flex:none;width:18px;height:18px;border-radius:5px;border:2px solid "+(s.done?accent:'var(--ptt-inputBorder)')+";background:"+(s.done?accent:'#fff')+";color:#fff;display:flex;align-items:center;justify-content:center;font:700 10px sans-serif;cursor:pointer;",textStyle:"flex:1;font-size:13.5px;color:"+(s.done?'#a8a396':'#26241f')+";"+(s.done?'text-decoration:line-through;':''),onToggle:()=>this.toggleSub(s.id),onRemove:()=>this.removeSub(s.id)})),
         onSubKey:e=>{if(e.key==='Enter'){e.preventDefault();this.addSub();}},addSub:()=>this.addSub(),
@@ -1052,6 +1121,9 @@ class Component extends DCLogic {
     }
     const cs=this.state.collapsedSections||{};const ne=this.state.notesEditing||{};
     const todayNRaw=(d.notes||{})[this.ymd(now)]||'';const todayNEditing=!!ne.today||!todayNRaw;
+    const todayKey=this.ymd(now);
+    const amRaw=(d.notes||{})[todayKey+'_am']||'';const amEditing=!!ne.today_am||!amRaw;
+    const pmRaw=(d.notes||{})[todayKey+'_pm']||'';const pmEditing=!!ne.today_pm||!pmRaw;
     const calNRaw=(d.notes||{})[calSel]||'';const calNEditing=!!ne.cal||!calNRaw;
     const S=this.state.settings;
     const settingsDefs=[
@@ -1106,13 +1178,22 @@ class Component extends DCLogic {
       gentleReminderPulse:!!this.state.settings.gentleReminders&&reminderBadge>0,
       bellPulseStyle:(this.state.settings.gentleReminders&&reminderBadge>0)?'animation:ptt-breathe 2.4s ease-in-out infinite;':'',
       todayNotes:(d.notes||{})[this.ymd(now)]||'',onTodayNotes:e=>this.setNote(this.ymd(now),e.target.value),
+      dayNoteCards:[
+        {icon:'☀️',label:'Start of day',value:amRaw,editing:amEditing,previewMode:!amEditing,blocks:this.noteBlocksFor(amRaw),isEmpty:!amRaw,emptyLabel:'What\'s the plan for today?',
+          placeholder:'Intentions, priorities, how you\'re feeling…',onChange:e=>this.setNote(todayKey+'_am',e.target.value),onBlur:()=>this.exitNotesEdit('today_am',amRaw),onToggleEdit:()=>this.toggleNotesEdit('today_am')},
+        {icon:'🌙',label:'End of day',value:pmRaw,editing:pmEditing,previewMode:!pmEditing,blocks:this.noteBlocksFor(pmRaw),isEmpty:!pmRaw,emptyLabel:'How did today go?',
+          placeholder:'Wins, blockers, what to carry into tomorrow…',onChange:e=>this.setNote(todayKey+'_pm',e.target.value),onBlur:()=>this.exitNotesEdit('today_pm',pmRaw),onToggleEdit:()=>this.toggleNotesEdit('today_pm')}
+      ],
       calNotes:(d.notes||{})[calSel]||'',onCalNotes:e=>this.setNote(calSel,e.target.value),
       todayNotesEditing:todayNEditing,todayNotesPreviewMode:!todayNEditing,todayNotesBlocks:this.noteBlocksFor(todayNRaw),
       onToggleTodayNotesEdit:()=>this.toggleNotesEdit('today'),onTodayNotesBlur:()=>this.exitNotesEdit('today',todayNRaw),
       calNotesEditing:calNEditing,calNotesPreviewMode:!calNEditing,calNotesBlocks:this.noteBlocksFor(calNRaw),
       onToggleCalNotesEdit:()=>this.toggleNotesEdit('cal'),onCalNotesBlur:()=>this.exitNotesEdit('cal',calNRaw),
-      overdueOpen:!cs.overdue,dueTodayOpen:!cs.duetoday,upcomingOpen:!cs.upcoming,
+      overdueOpen:!cs.overdue,dueTodayOpen:!cs.duetoday,upcomingOpen:!cs.upcoming,topPriorityOpen:!cs.topPriority,
       onToggleOverdueSection:()=>this.toggleSection('overdue'),onToggleDueTodaySection:()=>this.toggleSection('duetoday'),onToggleUpcomingSection:()=>this.toggleSection('upcoming'),
+      onToggleTopPrioritySection:()=>this.toggleSection('topPriority'),
+      topPriorityChevronStyle:"transform:rotate("+(cs.topPriority?'-90deg':'0deg')+");transition:transform .15s;",
+      hasTopPriority:topPriorityShown.length>0,topPriorityTasks:topPriorityShown.map(vm),
       overdueChevronStyle:"transform:rotate("+(cs.overdue?'-90deg':'0deg')+");transition:transform .15s;",
       dueTodayChevronStyle:"transform:rotate("+(cs.duetoday?'-90deg':'0deg')+");transition:transform .15s;",
       upcomingChevronStyle:"transform:rotate("+(cs.upcoming?'-90deg':'0deg')+");transition:transform .15s;",

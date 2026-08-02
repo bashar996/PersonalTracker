@@ -1,5 +1,6 @@
 import React from 'react';
 import TaskRow from '../TaskRow';
+import MarkdownPreview from '../MarkdownPreview';
 import { ymd, sortByDue, projectById, rgba, MONTH_NAMES, WEEKDAY_NAMES, WEEKDAY_SHORT_MON_FIRST, fmtDate } from '../../lib/helpers';
 
 function buildWeeks(projects, tasks, cal, calSel, accent) {
@@ -41,15 +42,15 @@ function buildWeeks(projects, tasks, cal, calSel, accent) {
       const hasItems = list.length > 0;
 
       const cellStyle = {
-        background: sel ? rgba(accent, 0.1) : (hasItems && inMonth ? '#fff' : (inMonth ? '#faf9f6' : 'transparent')),
-        borderColor: sel ? accent : (hasItems && inMonth ? '#e2ddd2' : (inMonth ? '#f0ede6' : 'transparent')),
+        background: sel ? rgba(accent, 0.1) : (hasItems && inMonth ? 'var(--ptt-card)' : (inMonth ? 'var(--ptt-modal)' : 'transparent')),
+        borderColor: sel ? accent : (hasItems && inMonth ? 'var(--ptt-inputBorder)' : (inMonth ? 'var(--ptt-sidebar)' : 'transparent')),
         opacity: inMonth ? 1 : 0.45,
         boxShadow: hasItems && inMonth && !sel ? '0 1px 2px rgba(0,0,0,.04)' : 'none',
       };
       const numStyle = {
         fontWeight: isToday || hasItems ? 700 : 500,
         background: isToday ? accent : 'transparent',
-        color: isToday ? '#fff' : (inMonth ? (hasItems ? '#26241f' : '#8f8a7d') : '#a09a8c'),
+        color: isToday ? '#fff' : (inMonth ? (hasItems ? 'var(--ptt-text)' : 'var(--ptt-secondary)') : 'var(--ptt-faint)'),
       };
 
       days.push({ key, dayNum: cur.getDate(), dots, extra, cellStyle, numStyle });
@@ -59,7 +60,11 @@ function buildWeeks(projects, tasks, cal, calSel, accent) {
   return weeks;
 }
 
-export default function CalendarView({ projects, tasks, cal, calSel, accent, onPrevMonth, onNextMonth, onSelectDay, onOpenTask, onToggleStatus }) {
+export default function CalendarView({
+  projects, tasks, cal, calSel, accent, onPrevMonth, onNextMonth, onSelectDay, onOpenTask, onToggleStatus,
+  colorUrgency, reduceClutter,
+  calNotes, calNotesEditing, onCalNotesChange, onCalNotesBlur, onToggleCalNotesEdit,
+}) {
   const weeks = buildWeeks(projects, tasks, cal, calSel, accent);
   const monthLabel = MONTH_NAMES[cal.m] + ' ' + cal.y;
   const calDayTasks = tasks.filter((t) => t.due && t.due.slice(0, 10) === calSel).slice().sort(sortByDue);
@@ -93,15 +98,49 @@ export default function CalendarView({ projects, tasks, cal, calSel, accent, onP
           </div>
         ))}
       </div>
-      <h2 className="section-title">{calSelLabel}</h2>
+      <h2 className="section-title" style={{ margin: '0 4px 9px' }}>{calSelLabel}</h2>
       {calDayTasks.length > 0 ? (
-        <div className="card-list">
+        <div className="card-list" style={{ marginBottom: 22 }}>
           {calDayTasks.map((t) => (
-            <TaskRow key={t.id} task={t} project={projectById(projects, t.projectId)} onOpen={onOpenTask} onToggleStatus={onToggleStatus} />
+            <TaskRow
+              key={t.id}
+              task={t}
+              project={projectById(projects, t.projectId)}
+              accent={accent}
+              colorUrgency={colorUrgency}
+              reduceClutter={reduceClutter}
+              onOpen={onOpenTask}
+              onToggleStatus={onToggleStatus}
+            />
           ))}
         </div>
       ) : (
-        <div className="empty-plain" style={{ padding: '24px 4px', textAlign: 'left' }}>Nothing scheduled for this day.</div>
+        <div className="empty-plain" style={{ padding: '24px 4px', textAlign: 'left', marginBottom: 0 }}>Nothing scheduled for this day.</div>
+      )}
+
+      <div className="notecard-head">
+        <h2 className="notecard-title">Notes</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {calNotesEditing && <span className="notecard-hint">Markdown supported</span>}
+          {!calNotesEditing && (
+            <button type="button" className="notecard-edit-btn" onClick={onToggleCalNotesEdit}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>Edit
+            </button>
+          )}
+        </div>
+      </div>
+      {calNotesEditing ? (
+        <textarea
+          className="notecard-textarea"
+          value={calNotes}
+          onChange={onCalNotesChange}
+          onBlur={onCalNotesBlur}
+          placeholder="Notes for this day… Markdown: **bold**, *italic*, # heading, - list"
+        />
+      ) : (
+        <div className="notecard-preview" onClick={onToggleCalNotesEdit}>
+          <MarkdownPreview text={calNotes} emptyLabel="" />
+        </div>
       )}
     </div>
   );

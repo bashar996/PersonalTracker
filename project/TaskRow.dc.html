@@ -7,7 +7,7 @@
 </head>
 <body>
 <x-dc>
-<div style="display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border-radius:11px;cursor:pointer;transition:background .12s;" style-hover="background:#f2efe8;" onClick="{{ task.onOpen }}">
+<div style="display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:3px;" style-hover="background:var(--ptt-hover);" onClick="{{ task.onOpen }}">
   <button style="{{ task.statusStyle }}" onClick="{{ task.onToggle }}">{{ task.statusMark }}</button>
   <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">
     <div style="display:flex;align-items:center;gap:10px;">
@@ -21,13 +21,17 @@
           <span style="display:inline-flex;align-items:center;gap:4px;font:500 11.5px 'Instrument Sans';color:#a8a396;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b3ada0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg>{{ task.mediaLabel }}</span>
         </sc-if>
-        <sc-if value="{{ task.showPrio }}" hint-placeholder-val="{{ false }}"><span style="{{ task.priorityDotStyle }}"></span></sc-if>
       </div>
     </div>
     <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px 13px;">
       <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'Instrument Sans';color:#8a8578;">
         <span style="{{ task.projectDotStyle }}"></span>{{ task.projectName }}</span>
-      <sc-if value="{{ task.showDue }}" hint-placeholder-val="{{ true }}"><span style="{{ task.dueStyle }}">{{ task.dueLabel }}</span></sc-if>
+      <sc-if value="{{ task.showDue }}" hint-placeholder-val="{{ true }}">
+        <span style="display:inline-flex;align-items:center;gap:5px;">
+          <sc-if value="{{ task.showUrgencyDot }}" hint-placeholder-val="{{ false }}"><span style="{{ task.urgencyDotStyle }}"></span></sc-if>
+          <span style="{{ task.dueStyle }}">{{ task.dueLabel }}</span>
+        </span>
+      </sc-if>
       <sc-if value="{{ task.isMeeting }}" hint-placeholder-val="{{ false }}"><span style="font:500 11px 'Instrument Sans';color:#6f7c99;background:#eef1f6;padding:2px 8px;border-radius:5px;">Meeting</span></sc-if>
       <sc-if value="{{ task.hasTags }}" hint-placeholder-val="{{ false }}">
         <span style="display:inline-flex;flex-wrap:wrap;gap:5px;">
