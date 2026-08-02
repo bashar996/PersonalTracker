@@ -87,12 +87,20 @@ tmux capture-pane -t app -p
 
 ## Data / notifications while driving
 
-The driver registers the same `data:load`/`data:save` IPC handlers as the
-real app, pointed at the real `app.getPath('userData')/data.json` — so
-whatever you see and change here is the same data the packaged app would
-use. `notify` is stubbed to a console log instead of a real
-`Notification`, since Notification Center doesn't work headless under
-Xvfb; check the driver's stdout to confirm a reminder *would* have fired.
+The driver registers the same `data:load`/`data:save`/`open-external`/
+`open-data-file` IPC handlers as the real app, pointed at the real
+`app.getPath('userData')/data.json` — so whatever you see and change here
+is the same data the packaged app would use. `notify` is stubbed to a
+console log instead of a real `Notification`, since Notification Center
+doesn't work headless under Xvfb; check the driver's stdout to confirm a
+reminder *would* have fired. `open-external`/`open-data-file` similarly
+log what they would have opened instead of actually doing it (no real
+browser/OS app to hand off to under Xvfb).
+
+**Adding new IPC handlers to `electron/main.js`?** Mirror them here too —
+this driver is a separate hand-rolled main process, not a re-export of the
+real one, so it drifts silently otherwise (a renderer call to an
+unmirrored channel throws "No handler registered for X").
 
 ## Gotchas
 

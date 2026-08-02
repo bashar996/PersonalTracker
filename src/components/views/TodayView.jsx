@@ -13,7 +13,7 @@ export default function TodayView({
   focusModeOn, bodyTimerOn, focusIndex, onFocusSkip, onFocusMarkDone,
   timerState, onTimerToggle, onTimerReset,
   oneThingOn,
-  notes, onSetNote, notesEditing, onToggleNotesEdit, onExitNotesEdit,
+  notes, onNoteInput, notesEditing, onToggleNotesEdit, onExitNotesEdit,
 }) {
   const now = new Date();
   const openTasks = tasks.filter((t) => t.status !== 'done');
@@ -119,8 +119,8 @@ export default function TodayView({
   const todayKey = ymd(now);
   const amKey = todayKey + '_am', pmKey = todayKey + '_pm';
   const amRaw = (notes || {})[amKey] || '', pmRaw = (notes || {})[pmKey] || '';
-  const amEditing = !!(notesEditing || {}).today_am || !amRaw;
-  const pmEditing = !!(notesEditing || {}).today_pm || !pmRaw;
+  const amEditing = (notesEditing || {}).today_am ?? !amRaw;
+  const pmEditing = (notesEditing || {}).today_pm ?? !pmRaw;
 
   return (
     <div className="view-wrap">
@@ -163,12 +163,12 @@ export default function TodayView({
         <DayNoteCard
           icon="☀️" label="Start of day" value={amRaw} editing={amEditing}
           emptyLabel="What's the plan for today?" placeholder="Intentions, priorities, how you're feeling…"
-          onChange={(e) => onSetNote(amKey, e.target.value)} onBlur={() => onExitNotesEdit('today_am', amRaw)} onToggleEdit={() => onToggleNotesEdit('today_am')}
+          onChange={(e) => onNoteInput(amKey, 'today_am', e.target.value)} onBlur={() => onExitNotesEdit('today_am', amRaw)} onToggleEdit={() => onToggleNotesEdit('today_am')}
         />
         <DayNoteCard
           icon="🌙" label="End of day" value={pmRaw} editing={pmEditing}
           emptyLabel="How did today go?" placeholder="Wins, blockers, what to carry into tomorrow…"
-          onChange={(e) => onSetNote(pmKey, e.target.value)} onBlur={() => onExitNotesEdit('today_pm', pmRaw)} onToggleEdit={() => onToggleNotesEdit('today_pm')}
+          onChange={(e) => onNoteInput(pmKey, 'today_pm', e.target.value)} onBlur={() => onExitNotesEdit('today_pm', pmRaw)} onToggleEdit={() => onToggleNotesEdit('today_pm')}
         />
       </div>
     </div>

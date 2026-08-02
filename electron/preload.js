@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('notification-click', listener);
     return () => ipcRenderer.removeListener('notification-click', listener);
   },
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  openDataFile: (opts) => ipcRenderer.invoke('open-data-file', opts),
 });

@@ -16,7 +16,7 @@ import { seedStore } from './lib/seed';
 import { migrateStore } from './lib/migrate';
 import {
   uid, darken, rgba, ymd, dueInfo, projectById, filterTasks, themeVars,
-  fmtTime, fmtDate, MONTH_NAMES, WEEKDAY_NAMES, PAL,
+  fmtTime, fmtDate, fmtTimer, MONTH_NAMES, WEEKDAY_NAMES, PAL,
 } from './lib/helpers';
 
 const DEFAULT_FILTERS = { search: '', status: 'all', priority: 'all', projectId: 'all' };
@@ -181,7 +181,7 @@ export default function App() {
   }
 
   // ---------- task crud ----------
-  function toForm(t) { return { ...t, _newSub: '', _tagsText: (t.tags || []).join(', '), _mediaName: '', _mediaType: 'link' }; }
+  function toForm(t) { return { ...t, _newSub: '', _tagsText: (t.tags || []).join(', '), _mediaName: '', _mediaUrl: '', _mediaNoteText: '', _mediaType: 'link' }; }
   function openTask(id) {
     if (!store) return;
     let wsId = activeWorkspaceId;
@@ -225,19 +225,46 @@ export default function App() {
   }
   function toggleSub(id) { setFormPatch({ subtasks: form.subtasks.map((s) => (s.id === id ? { ...s, done: !s.done } : s)) }); }
   function removeSub(id) { setFormPatch({ subtasks: form.subtasks.filter((s) => s.id !== id) }); }
-  function addMedia() {
-    const n = (form._mediaName || '').trim();
-    if (!n) return;
-    setFormPatch({ media: (form.media || []).concat([{ id: uid(), type: form._mediaType, name: n }]), _mediaName: '' });
+  function addMediaItem(item) {
+    setFormPatch({ media: (form.media || []).concat([{ id: uid(), ...item }]) });
   }
   function removeMedia(id) { setFormPatch({ media: form.media.filter((m) => m.id !== id) }); }
-  function onImage(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const r = new FileReader();
-    r.onload = () => setFormPatch({ media: (form.media || []).concat([{ id: uid(), type: 'image', name: file.name, url: r.result }]) });
-    r.readAsDataURL(file);
-    e.target.value = '';
+  function readFileAsMedia(type) {
+    return (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const r = new FileReader();
+      r.onload = () => addMediaItem({ type, name: file.name, url: r.result, mimeType: file.type });
+      r.readAsDataURL(file);
+      e.target.value = '';
+    };
+  }
+  const onImage = readFileAsMedia('image');
+  const onDocFile = readFileAsMedia('doc');
+  function addLink() {
+    const raw = (form._mediaUrl || '').trim();
+    if (!raw) return;
+    const url = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : 'https://' + raw;
+    let label = (form._mediaName || '').trim();
+    if (!label) {
+      try { label = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { label = url; }
+    }
+    addMediaItem({ type: 'link', name: label, url });
+    setFormPatch({ _mediaUrl: '', _mediaName: '' });
+  }
+  function addNote() {
+    const text = (form._mediaNoteText || '').trim();
+    if (!text) return;
+    const name = (form._mediaName || '').trim() || text.split('\n')[0].slice(0, 40);
+    addMediaItem({ type: 'note', name, text });
+    setFormPatch({ _mediaNoteText: '', _mediaName: '' });
+  }
+  function addVoice(dataUrl, durationSec) {
+    addMediaItem({ type: 'voice', name: 'Voice note · ' + fmtTimer(durationSec), url: dataUrl, duration: durationSec });
+  }
+  function openMedia(item) {
+    if (item.type === 'link') window.api.openExternal(item.url);
+    else if (item.type === 'doc') window.api.openDataFile({ name: item.name, dataUrl: item.url });
   }
   function saveTask() {
     const f = form;
@@ -321,6 +348,14 @@ export default function App() {
   function setNote(day, text) {
     const notes = { ...(data.notes || {}), [day]: text };
     persistData({ ...data, notes });
+  }
+  // Typing saves the text AND pins editing state explicitly true, so the
+  // editing flag stops falling back to "!hasContent" the instant a note
+  // goes from empty to non-empty — otherwise the textarea would unmount
+  // mid-keystroke as soon as the first character landed.
+  function noteInput(dayKey, editKey, text) {
+    setNote(dayKey, text);
+    setNotesEditing((s) => (s[editKey] === true ? s : { ...s, [editKey]: true }));
   }
 
   // ---------- celebration ----------
@@ -407,7 +442,7 @@ export default function App() {
   const [title, subtitle] = titles[view] || ['', ''];
 
   const calNotesRaw = (data.notes || {})[calSel] || '';
-  const calNotesEditing = !!notesEditing.cal || !calNotesRaw;
+  const calNotesEditing = notesEditing.cal ?? !calNotesRaw;
 
   let showNudge = false;
   if (modal === 'task' && form) {
@@ -466,7 +501,7 @@ export default function App() {
                 focusIndex={focusIndex} onFocusSkip={() => setFocusIndex((i) => i + 1)} onFocusMarkDone={cycleStatus}
                 timerState={timer} onTimerToggle={onTimerToggle} onTimerReset={resetTimer}
                 oneThingOn={!!settings.oneThing}
-                notes={data.notes} onSetNote={setNote} notesEditing={notesEditing}
+                notes={data.notes} onNoteInput={noteInput} notesEditing={notesEditing}
                 onToggleNotesEdit={toggleNotesEdit} onExitNotesEdit={exitNotesEdit}
               />
             )}
@@ -475,7 +510,7 @@ export default function App() {
                 projects={projects} tasks={tasks} hideCompleted={hideCompleted}
                 onOpenTask={openTask} onToggleStatus={cycleStatus} onAddTask={newTask}
                 accent={accent} colorUrgency={!!settings.colorUrgency} reduceClutter={!!settings.reduceClutter}
-                notes={data.notes} onSetNote={setNote} notesEditing={notesEditing}
+                notes={data.notes} onNoteInput={noteInput} notesEditing={notesEditing}
                 onToggleNotesEdit={toggleNotesEdit} onExitNotesEdit={exitNotesEdit}
               />
             )}
@@ -511,7 +546,7 @@ export default function App() {
                 onToggleStatus={cycleStatus}
                 calNotes={calNotesRaw}
                 calNotesEditing={calNotesEditing}
-                onCalNotesChange={(e) => setNote(calSel, e.target.value)}
+                onCalNotesChange={(e) => noteInput(calSel, 'cal', e.target.value)}
                 onCalNotesBlur={() => exitNotesEdit('cal', calNotesRaw)}
                 onToggleCalNotesEdit={() => toggleNotesEdit('cal')}
               />
@@ -538,9 +573,13 @@ export default function App() {
           onAddSub={addSub}
           onToggleSub={toggleSub}
           onRemoveSub={removeSub}
-          onAddMedia={addMedia}
           onRemoveMedia={removeMedia}
           onImage={onImage}
+          onDocFile={onDocFile}
+          onAddLink={addLink}
+          onAddNote={addNote}
+          onAddVoice={addVoice}
+          onOpenMedia={openMedia}
         />
       )}
       {modal === 'project' && form && (

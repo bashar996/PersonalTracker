@@ -39,10 +39,14 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
       "target": [
         "dmg",
         "dir"
-      ]
+      ],
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Tracker uses your microphone to record voice notes you attach to tasks."
+      }
     }
   }
 }

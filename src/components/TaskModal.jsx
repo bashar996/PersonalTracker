@@ -1,9 +1,10 @@
 import React from 'react';
-import { mediaColor } from '../lib/helpers';
+import { mediaColor, fmtTimer } from '../lib/helpers';
+import VoiceRecorder from './VoiceRecorder';
 
 const TYPE_OPTS = [['task', 'Task'], ['meeting', 'Meeting']];
 const STATUS_OPTS = [['todo', 'To do'], ['doing', 'In progress'], ['done', 'Done']];
-const MEDIA_TYPES = [['link', 'Link'], ['doc', 'Doc'], ['voice', 'Voice'], ['note', 'Note']];
+const MEDIA_TYPES = [['link', 'Link'], ['doc', 'Doc'], ['voice', 'Voice'], ['note', 'Note'], ['image', 'Image']];
 
 function Seg({ options, value, onPick, tight }) {
   return (
@@ -22,8 +23,40 @@ function Seg({ options, value, onPick, tight }) {
   );
 }
 
-export default function TaskModal({ form, projects, showNudge, onChange, onSave, onCancel, onDelete, onAddSub, onToggleSub, onRemoveSub, onAddMedia, onRemoveMedia, onImage }) {
+function MediaItemRow({ item, onRemove, onOpen }) {
+  const c = mediaColor(item.type);
+  const isImg = item.type === 'image' && item.url;
+  const openable = item.type === 'link' || item.type === 'doc';
+
+  const head = (
+    <div className={'media-row-main' + (openable ? ' clickable' : '')} onClick={openable ? onOpen : undefined}>
+      {isImg
+        ? <div className="media-thumb" style={{ backgroundImage: `url('${item.url}')` }} />
+        : <span className="media-icon" style={{ background: c.bg, color: c.fg }}>{c.icon}</span>}
+      <div className="media-label-col">
+        <div className="media-label">{item.name}</div>
+        {item.type === 'link' && <div className="media-sub">{item.url}</div>}
+        {item.type === 'voice' && item.duration != null && <div className="media-sub">{fmtTimer(item.duration)}</div>}
+      </div>
+      <button type="button" className="remove-x" onClick={(e) => { e.stopPropagation(); onRemove(); }}>×</button>
+    </div>
+  );
+
+  return (
+    <div className="media-row">
+      {head}
+      {item.type === 'voice' && item.url && <audio className="media-audio" controls src={item.url} />}
+      {item.type === 'note' && item.text && <div className="media-note-text">{item.text}</div>}
+    </div>
+  );
+}
+
+export default function TaskModal({
+  form, projects, showNudge, onChange, onSave, onCancel, onDelete, onAddSub, onToggleSub, onRemoveSub,
+  onRemoveMedia, onImage, onDocFile, onAddLink, onAddNote, onAddVoice, onOpenMedia,
+}) {
   const isEditing = !!form.id;
+  const mediaType = form._mediaType || 'link';
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -118,38 +151,82 @@ export default function TaskModal({ form, projects, showNudge, onChange, onSave,
 
           <div>
             <label className="field-label">Media</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 9 }}>
-              {(form.media || []).map((mm) => {
-                const c = mediaColor(mm.type);
-                const isImg = mm.type === 'image' && mm.url;
-                return (
-                  <div className="media-row" key={mm.id}>
-                    {isImg
-                      ? <div className="media-thumb" style={{ backgroundImage: `url('${mm.url}')` }} />
-                      : <span className="media-icon" style={{ background: c.bg, color: c.fg }}>{c.icon}</span>}
-                    <span className="media-label">{mm.name}</span>
-                    <button type="button" className="remove-x" onClick={() => onRemoveMedia(mm.id)}>×</button>
-                  </div>
-                );
-              })}
+
+            {(form.media || []).length > 0 && (
+              <div className="media-list">
+                {form.media.map((mm) => (
+                  <MediaItemRow key={mm.id} item={mm} onRemove={() => onRemoveMedia(mm.id)} onOpen={() => onOpenMedia(mm)} />
+                ))}
+              </div>
+            )}
+
+            <div className="media-type-seg">
+              {MEDIA_TYPES.map(([k, l]) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={'seg-btn' + (mediaType === k ? ' active' : '')}
+                  onClick={() => onChange({ _mediaType: k })}
+                >
+                  {l}
+                </button>
+              ))}
             </div>
-            <div className="media-add-row">
-              <input
-                className="input sm"
-                style={{ flex: 1 }}
-                placeholder="Link, doc or note name"
-                value={form._mediaName || ''}
-                onChange={(e) => onChange({ _mediaName: e.target.value })}
-              />
-              <select className="filter-select" value={form._mediaType || 'link'} onChange={(e) => onChange({ _mediaType: e.target.value })}>
-                {MEDIA_TYPES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-              </select>
-              <button type="button" className="btn-ghost" onClick={onAddMedia}>Add</button>
-            </div>
-            <label className="upload-label">
-              + Upload image
-              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={onImage} />
-            </label>
+
+            {mediaType === 'link' && (
+              <div className="media-add-row">
+                <input
+                  className="input sm"
+                  style={{ flex: 1 }}
+                  placeholder="https://…"
+                  value={form._mediaUrl || ''}
+                  onChange={(e) => onChange({ _mediaUrl: e.target.value })}
+                />
+                <input
+                  className="input sm"
+                  style={{ flex: 1 }}
+                  placeholder="Label (optional)"
+                  value={form._mediaName || ''}
+                  onChange={(e) => onChange({ _mediaName: e.target.value })}
+                />
+                <button type="button" className="btn-ghost" onClick={onAddLink}>Add</button>
+              </div>
+            )}
+
+            {mediaType === 'doc' && (
+              <label className="upload-label">
+                + Choose file
+                <input type="file" style={{ display: 'none' }} onChange={onDocFile} />
+              </label>
+            )}
+
+            {mediaType === 'voice' && <VoiceRecorder onRecorded={onAddVoice} />}
+
+            {mediaType === 'note' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input
+                  className="input sm"
+                  placeholder="Title (optional)"
+                  value={form._mediaName || ''}
+                  onChange={(e) => onChange({ _mediaName: e.target.value })}
+                />
+                <textarea
+                  className="input textarea media-note-textarea"
+                  style={{ minHeight: 50 }}
+                  placeholder="Write a quick note…"
+                  value={form._mediaNoteText || ''}
+                  onChange={(e) => onChange({ _mediaNoteText: e.target.value })}
+                />
+                <button type="button" className="btn-ghost" onClick={onAddNote} style={{ alignSelf: 'flex-start' }}>Add note</button>
+              </div>
+            )}
+
+            {mediaType === 'image' && (
+              <label className="upload-label">
+                + Upload image
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={onImage} />
+              </label>
+            )}
           </div>
         </div>
 

@@ -16,6 +16,16 @@ Built with **Electron + React**. This implements the design exported from Claude
 - **Dark mode** — manual toggle in the header, persisted.
 - **Reminders** — bell icon in the header, plus native macOS notifications at the scheduled reminder time (checked across every workspace, not just the active one).
 
+## Task media
+
+Each task can carry attachments, added via the media type picker in the task editor:
+
+- **Link** — paste a URL (scheme optional); click it to open in your default browser.
+- **Doc** — pick any file; click it to open with your Mac's default app for that file type.
+- **Voice** — record a note with your microphone; play it back inline. First use will prompt for microphone permission.
+- **Note** — a quick free-text note with an optional title.
+- **Image** — upload an image; shows as a thumbnail.
+
 ## Development
 
 ```bash
@@ -45,7 +55,8 @@ You can inspect, back up, or hand-edit this file directly — it's the same form
 
 ## Project layout
 
-- `electron/main.js` — main process: window creation, JSON file persistence (IPC), native notifications.
+- `electron/main.js` — main process: window creation, JSON file persistence (IPC), native notifications, opening links/files.
 - `electron/preload.js` — exposes a minimal `window.api` bridge to the renderer.
 - `src/` — the React app (views, components, styling).
+- `build/icon.png` — the app icon (1024×1024); `electron-builder` generates the `.icns` from it at build time.
 - `project/`, `chats/` — the original Claude Design export this app was built from.

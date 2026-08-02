@@ -3,9 +3,10 @@
 // so it registers the same IPC handlers as electron/main.js and drives its own
 // BrowserWindow directly — no Playwright dependency needed.
 // Designed for agents: wrap in tmux, send-keys commands, capture-pane output.
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
@@ -34,6 +35,35 @@ ipcMain.handle('data:save', (event, data) => {
 ipcMain.handle('notify', (event, opts) => {
   console.log('(notify, no-op headless):', JSON.stringify(opts));
   return false;
+});
+// Same two handlers as electron/main.js, kept in sync so media (link/doc)
+// open actions can be driven headlessly too. There's no real browser/OS
+// app to hand off to under Xvfb, so this just logs the outcome.
+ipcMain.handle('open-external', (event, url) => {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    console.log('(open-external, headless):', u.toString());
+    shell.openExternal(u.toString()).catch(() => {});
+    return true;
+  } catch (e) {
+    return false;
+  }
+});
+ipcMain.handle('open-data-file', (event, { name, dataUrl } = {}) => {
+  try {
+    const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl || '');
+    if (!m) return false;
+    const buf = Buffer.from(m[2], 'base64');
+    const safeName = String(name || 'file').replace(/[\\/]/g, '_');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tracker-'));
+    const tmpPath = path.join(tmpDir, safeName);
+    fs.writeFileSync(tmpPath, buf);
+    console.log('(open-data-file, headless):', tmpPath);
+    return true;
+  } catch (e) {
+    return false;
+  }
 });
 
 let win = null;
